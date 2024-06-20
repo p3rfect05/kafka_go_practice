@@ -25,7 +25,7 @@ func task1() {
 			if err == nil {
 				break
 			}
-			errorLog.Printf("cannot not create producer(probably connection error), retry %d/%d\n", i+1, connectRetries)
+			errorLog.Printf("cannot create producer(probably connection error), retry %d/%d\n", i+1, connectRetries)
 
 		}
 		if err != nil {
