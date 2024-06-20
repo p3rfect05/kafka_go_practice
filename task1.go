@@ -17,6 +17,9 @@ func task1() {
 	doneChan := make(chan struct{})
 	wg := sync.WaitGroup{}
 	producer, err := sarama.NewSyncProducer([]string{"kafka:9092"}, nil)
+
+	msgs := []string{"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"}
+
 	if err != nil {
 
 		for i := 0; i < connectRetries; i++ {
@@ -61,7 +64,6 @@ func task1() {
 	}()
 	wg.Add(1)
 	go func() {
-		msgs := []string{"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"}
 		for _, msg_text := range msgs {
 			msg := &sarama.ProducerMessage{
 				Topic: "test-topic",
@@ -73,6 +75,8 @@ func task1() {
 				errorLog.Fatalf("%v at partition #%d\n", err, partition)
 			}
 		}
+
+		// we either receive all the messages, or we are already exited because of an error
 		for received_msg != len(msgs) {
 
 		}
@@ -87,7 +91,7 @@ func task1() {
 				received_msg++
 
 			case <-doneChan:
-				log.Printf("%d messages received, ending\n", received_msg)
+				log.Printf("%d/%d messages received, ending\n", received_msg, len(msgs))
 				return
 			}
 		}

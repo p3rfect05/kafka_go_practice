@@ -9,7 +9,8 @@ import (
 	"github.com/IBM/sarama"
 )
 
-func task2() {
+func task3() {
+
 	doneChan := make(chan struct{})
 	wg := sync.WaitGroup{}
 	successes := 0
@@ -17,6 +18,8 @@ func task2() {
 	received_msg := 0
 
 	msgs := []string{"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"}
+
+	consumerWorkers := 5
 
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
@@ -107,22 +110,24 @@ func task2() {
 		doneChan <- struct{}{}
 	}(ctx)
 
-	wg.Add(1)
+	wg.Add(consumerWorkers)
 	// consumer waiting for either a message or a done signal
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case msg := <-partitionConsumer.Messages():
-				log.Printf("message received at topic:%s, value:%s", msg.Topic, msg.Value)
-				received_msg++
+	for i := 0; i < consumerWorkers; i++ {
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case msg := <-partitionConsumer.Messages():
+					log.Printf("message received at topic:%s, value:%s", msg.Topic, msg.Value)
+					received_msg++
 
-			case <-doneChan:
-				log.Printf("%d/%d messages received, ending\n", received_msg, len(msgs))
-				producer.AsyncClose()
-				return
+				case <-doneChan:
+					log.Printf("%d/%d messages received, ending\n", received_msg, len(msgs))
+					producer.AsyncClose()
+					return
+				}
 			}
-		}
-	}()
+		}()
+	}
 	wg.Wait()
 }
