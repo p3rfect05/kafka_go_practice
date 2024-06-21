@@ -1,7 +1,9 @@
 FROM alpine:latest
 RUN mkdir /app
 
-COPY ./myapp /app
+WORKDIR /app
+COPY ./myapp .
+
 
 
 # Run the server executable
